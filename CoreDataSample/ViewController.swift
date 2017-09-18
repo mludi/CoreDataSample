@@ -13,6 +13,7 @@ class ViewController: UITableViewController {
     // MARK: - Constants
     fileprivate let sortKey = "date"
     fileprivate let reuseIdentifier = "Cell"
+    fileprivate let ascending = false
     
     // MARK: - View Life Cycle
     override func viewDidLoad() {
@@ -72,13 +73,11 @@ class ViewController: UITableViewController {
 
     fileprivate lazy var fetchedResultsController: NSFetchedResultsController<Message> = {
         let request: NSFetchRequest<Message> = Message.fetchRequest()
-        let sortDescriptor = NSSortDescriptor(key: sortKey, ascending: false)
+        let sortDescriptor = NSSortDescriptor(key: sortKey, ascending: ascending)
         request.sortDescriptors = [sortDescriptor]
         request.fetchBatchSize = 20
-
         
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
-        
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)       
         fetchedResultsController.delegate = self
         
         do {
