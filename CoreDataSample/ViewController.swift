@@ -25,25 +25,23 @@ class ViewController: UITableViewController {
     }
 
     // MARK: - Actions
-    @objc func add() {
-        let appdelegate = UIApplication.shared.delegate as? AppDelegate
-        guard let moc = appdelegate?.persistentContainer.viewContext else {
-            fatalError()
-        }
-        
+    @objc func add() {       
         for _ in 1...100 {
-            let message = Message(context: moc)
+            let message = Message(context: managedObjectContext)
             message.date = NSDate()
             message.body = String.random()
         }
-        try? moc.save()
+        do {
+            try managedObjectContext.save()
+        }
+        catch {
+            print("error while saving \(error)")
+        }        
     }
 
     // MARK: - UITableViewDataSource
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let sections = fetchedResultsController.sections else {
-            fatalError("No sections in fetchedResultsController")
-        }
+        guard let sections = fetchedResultsController.sections else { return 0 }
         let sectionInfo = sections[section]
         return sectionInfo.numberOfObjects
     }
@@ -64,18 +62,22 @@ class ViewController: UITableViewController {
     }
     
     // MARK: - Properties
+    fileprivate lazy var managedObjectContext: NSManagedObjectContext = {
+        let appDelegate = UIApplication.shared.delegate as? AppDelegate
+        guard let moc = appDelegate?.persistentContainer.viewContext else {
+            fatalError()
+        }
+        return moc
+    }()
+
     fileprivate lazy var fetchedResultsController: NSFetchedResultsController<Message> = {
         let request: NSFetchRequest<Message> = Message.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: sortKey, ascending: false)
         request.sortDescriptors = [sortDescriptor]
         request.fetchBatchSize = 20
+
         
-        let appdelegate = UIApplication.shared.delegate as? AppDelegate
-        guard let moc = appdelegate?.persistentContainer.viewContext else {
-            fatalError()
-        }
-        
-        let fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: moc, sectionNameKeyPath: nil, cacheName: nil)
+        let fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
         
         fetchedResultsController.delegate = self
         
